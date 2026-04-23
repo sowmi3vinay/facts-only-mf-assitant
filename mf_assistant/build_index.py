@@ -1,12 +1,11 @@
-"""Build a TF-IDF retrieval index over the chunked corpus.
+"""Build a FAISS vector index from chunks.jsonl.
 
-We use TF-IDF (scikit-learn) as a lightweight, dependency-free embedding
-substitute for a small corpus. It avoids API keys and runs fully offline,
-which is important for a "facts only" assistant.
+Reads ``data/chunks/chunks.jsonl``, embeds each chunk with a small
+SentenceTransformer model, and writes:
 
-Source of truth: normalized JSON records in ``data/normalized/`` produced by
-``ingest.py``. Falls back to demo chunks if no normalized records exist yet,
-so the UI works on first launch.
+- ``data/index/faiss.index``   — the FAISS vector index (cosine via inner-product on normalized vectors)
+- ``data/index/meta.jsonl``    — one JSON line of chunk metadata per vector (aligned by row)
+- ``data/index/info.json``     — model name, dim, chunk count, build timestamp
 
 Run:
     PYTHONPATH=. python -m mf_assistant.build_index
@@ -14,134 +13,100 @@ Run:
 from __future__ import annotations
 
 import json
-import pickle
+import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 
-from .chunker import Chunk, make_chunks
+from .config import (
+    CHUNKS_JSONL,
+    EMBED_DIM,
+    EMBED_MODEL_NAME,
+    FAISS_INDEX_PATH,
+    INDEX_DIR,
+    INDEX_INFO_PATH,
+    META_PATH,
+)
 
-ROOT = Path(__file__).resolve().parent
-DATA_DIR = ROOT / "data"
-NORMALIZED_DIR = DATA_DIR / "normalized"
-INDEX_DIR = DATA_DIR / "index"
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
 INDEX_DIR.mkdir(parents=True, exist_ok=True)
-CHUNKS_PATH = INDEX_DIR / "chunks.json"
-VECTORIZER_PATH = INDEX_DIR / "vectorizer.pkl"
-MATRIX_PATH = INDEX_DIR / "matrix.pkl"
 
 
-# --- Placeholder demo chunks so the app works before real ingestion runs. ---
-# TODO: Remove or override these once ingest.py has produced normalized records.
-DEMO_CHUNKS: List[dict] = [
-    {
-        "text": (
-            "Demo Large Cap Fund - Direct Growth has a total expense ratio (TER) of "
-            "0.85% per annum as per the latest factsheet. The scheme's benchmark is "
-            "the NIFTY 100 TRI. The riskometer rating is 'Very High'."
-        ),
-        "source_id": "DEMO_LARGE_CAP_FACTSHEET",
-        "scheme_name": "Demo Large Cap Fund - Direct Growth",
-        "url": "https://example-amc.com/demo-large-cap/factsheet.pdf",
-        "last_updated_from_source": "2026-04-01",
-    },
-    {
-        "text": (
-            "Demo Flexi Cap Fund - Direct Growth has a total expense ratio of 0.72% "
-            "per annum. Exit load is 1% if redeemed within 12 months, nil thereafter. "
-            "The benchmark is NIFTY 500 TRI and the riskometer rating is 'Very High'."
-        ),
-        "source_id": "DEMO_FLEXI_CAP_FACTSHEET",
-        "scheme_name": "Demo Flexi Cap Fund - Direct Growth",
-        "url": "https://example-amc.com/demo-flexi-cap/factsheet.pdf",
-        "last_updated_from_source": "2026-04-01",
-    },
-    {
-        "text": (
-            "Demo ELSS Tax Saver Fund - Direct Growth has a statutory lock-in period "
-            "of 3 years (36 months) from the date of allotment of units. There is no "
-            "exit load applicable since redemption is not permitted during the lock-in. "
-            "Minimum SIP is Rs. 500."
-        ),
-        "source_id": "DEMO_ELSS_FACTSHEET",
-        "scheme_name": "Demo ELSS Tax Saver Fund - Direct Growth",
-        "url": "https://example-amc.com/demo-elss/factsheet.pdf",
-        "last_updated_from_source": "2026-04-01",
-    },
-]
-
-
-def _load_normalized_records() -> list[dict]:
-    if not NORMALIZED_DIR.exists():
+def _read_chunks(path: Path = CHUNKS_JSONL) -> List[dict]:
+    if not path.exists():
         return []
-    out: list[dict] = []
-    for p in sorted(NORMALIZED_DIR.glob("*.json")):
-        try:
-            out.append(json.loads(p.read_text(encoding="utf-8")))
-        except Exception:
-            continue
-    return out
-
-
-def _build_chunks_from_records(records: list[dict]) -> List[Chunk]:
-    chunks: List[Chunk] = []
-    for r in records:
-        chunks.extend(
-            make_chunks(
-                r.get("text", ""),
-                source_id=r.get("source_id", ""),
-                scheme_id=r.get("scheme_name", ""),
-                url=r.get("url", ""),
-                last_checked=r.get("last_updated_from_source") or r.get("fetched_at", ""),
-            )
-        )
+    chunks: List[dict] = []
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                chunks.append(json.loads(line))
+            except Exception:
+                continue
     return chunks
 
 
-def build(use_demo_if_empty: bool = True) -> int:
-    """Build the index and persist it to disk. Returns chunk count."""
-    records = _load_normalized_records()
-    chunks = _build_chunks_from_records(records)
-
-    if not chunks and use_demo_if_empty:
-        chunks = [
-            Chunk(
-                text=c["text"],
-                source_id=c["source_id"],
-                scheme_id=c["scheme_name"],
-                url=c["url"],
-                last_checked=c["last_updated_from_source"],
-            )
-            for c in DEMO_CHUNKS
-        ]
-
+def build(verbose: bool = True) -> int:
+    """Build and persist the FAISS index. Returns number of vectors."""
+    chunks = _read_chunks()
     if not chunks:
-        CHUNKS_PATH.write_text("[]", encoding="utf-8")
+        if verbose:
+            print(f"No chunks found at {CHUNKS_JSONL}. Run chunker.py first.")
         return 0
 
-    from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
+    # Lazy imports - heavy
+    import numpy as np
+    import faiss  # type: ignore
+    from sentence_transformers import SentenceTransformer  # type: ignore
 
-    texts = [c.text for c in chunks]
-    vectorizer = TfidfVectorizer(
-        ngram_range=(1, 2),
-        min_df=1,
-        max_df=0.95,
-        sublinear_tf=True,
-        stop_words="english",
+    if verbose:
+        print(f"Loading model: {EMBED_MODEL_NAME}")
+    model = SentenceTransformer(EMBED_MODEL_NAME)
+
+    texts = [c["text"] for c in chunks]
+    if verbose:
+        print(f"Embedding {len(texts)} chunks…")
+    vectors = model.encode(
+        texts,
+        batch_size=32,
+        show_progress_bar=verbose,
+        convert_to_numpy=True,
+        normalize_embeddings=True,
+    ).astype("float32")
+
+    assert vectors.shape[1] == EMBED_DIM, (
+        f"Expected embedding dim {EMBED_DIM}, got {vectors.shape[1]}"
     )
-    matrix = vectorizer.fit_transform(texts)
 
-    CHUNKS_PATH.write_text(
-        json.dumps([c.__dict__ for c in chunks], ensure_ascii=False, indent=2),
+    # Cosine similarity via inner product on L2-normalized vectors.
+    index = faiss.IndexFlatIP(EMBED_DIM)
+    index.add(vectors)
+    faiss.write_index(index, str(FAISS_INDEX_PATH))
+
+    with META_PATH.open("w", encoding="utf-8") as f:
+        for c in chunks:
+            f.write(json.dumps(c, ensure_ascii=False) + "\n")
+
+    INDEX_INFO_PATH.write_text(
+        json.dumps(
+            {
+                "model": EMBED_MODEL_NAME,
+                "dim": EMBED_DIM,
+                "count": len(chunks),
+                "built_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            },
+            indent=2,
+        ),
         encoding="utf-8",
     )
-    with VECTORIZER_PATH.open("wb") as f:
-        pickle.dump(vectorizer, f)
-    with MATRIX_PATH.open("wb") as f:
-        pickle.dump(matrix, f)
 
+    if verbose:
+        print(f"Built FAISS index with {len(chunks)} vectors → {FAISS_INDEX_PATH}")
     return len(chunks)
 
 
 if __name__ == "__main__":
-    n = build()
-    print(f"Built index with {n} chunks")
+    build(verbose=True)

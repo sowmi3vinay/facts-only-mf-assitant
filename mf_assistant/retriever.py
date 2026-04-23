@@ -88,6 +88,15 @@ class Retriever:
                     continue
         return out
 
+    def list_schemes(self) -> List[str]:
+        """Return distinct scheme names present in the indexed metadata."""
+        seen = []
+        for m in self._meta:
+            name = (m.get("scheme_name") or "").strip()
+            if name and name not in seen:
+                seen.append(name)
+        return sorted(seen)
+
     def _ensure_model(self):
         if self._model is None:
             from sentence_transformers import SentenceTransformer  # type: ignore

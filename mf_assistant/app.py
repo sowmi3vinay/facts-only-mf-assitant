@@ -36,6 +36,16 @@ query = st.text_input(
     placeholder="e.g. What is the exit load on Demo Flexi Cap Fund?",
 )
 
+ANY_SCHEME = "Any scheme"
+retriever = get_retriever()
+scheme_options = [ANY_SCHEME] + retriever.list_schemes()
+scheme_choice = st.selectbox(
+    "Limit answer to scheme (optional)",
+    options=scheme_options,
+    index=0,
+    help="When set, only documents for the selected fund are used to answer.",
+)
+
 submit = st.button("Ask", type="primary")
 
 if submit and query.strip():
@@ -49,10 +59,16 @@ if submit and query.strip():
         elif decision.decision == "refuse_scope":
             st.info("Please enter a factual question about an approved scheme.")
         else:
-            retriever = get_retriever()
-            hits = retriever.search(query, top_k=4)
-            answer = compose(hits, query=query)
-            st.markdown(format_for_display(answer))
+            scheme_filter = None if scheme_choice == ANY_SCHEME else scheme_choice
+            hits = retriever.search(query, top_k=4, scheme_name=scheme_filter)
+            if not hits and scheme_filter:
+                st.info(
+                    f"No indexed documents matched **{scheme_filter}** for this question. "
+                    "Try 'Any scheme' or rephrase."
+                )
+            else:
+                answer = compose(hits, query=query)
+                st.markdown(format_for_display(answer))
 
 with st.expander("What this assistant will and won't answer"):
     st.markdown(

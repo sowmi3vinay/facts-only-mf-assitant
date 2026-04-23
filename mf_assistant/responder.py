@@ -23,6 +23,7 @@ import re
 from dataclasses import dataclass
 from typing import List, Optional
 
+from .facts_store import FactRecord
 from .prompts import (
     EDUCATIONAL_SOURCE_URL,
     NOT_FOUND_MESSAGE,
@@ -30,6 +31,30 @@ from .prompts import (
     REFUSAL_PII,
 )
 from .retriever import Hit
+
+
+# Human-readable label per structured field for the answer sentence.
+_FIELD_LABELS = {
+    "lock_in_period": "Lock-in period",
+    "exit_load": "Exit load",
+    "benchmark": "Benchmark",
+    "minimum_sip": "Minimum SIP",
+    "minimum_lumpsum": "Minimum lumpsum / application amount",
+    "expense_ratio": "Expense ratio",
+    "riskometer": "Riskometer",
+}
+
+
+def build_fact_response(fact: FactRecord) -> "Response":
+    """Format a structured fact as a 1-sentence grounded answer."""
+    label = _FIELD_LABELS.get(fact.field_name, fact.field_name)
+    text = f"{label} for {fact.scheme_name}: {fact.field_value}."
+    return Response(
+        kind="answer",
+        text=text,
+        url=fact.source_url or None,
+        last_updated=fact.last_updated_from_source or None,
+    )
 
 
 # ---------------------------------------------------------------------------

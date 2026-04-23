@@ -1,14 +1,20 @@
-"""End-to-end orchestration: query → router → retriever → responder.
+"""End-to-end orchestration: query → router → facts/retriever → responder.
 
-This is the single place the UI calls. Keeps ``app.py`` thin.
+For ANSWER-classified queries, we consult the structured facts store first
+when the question targets a known field on a known scheme. If we have a
+matching fact we return it directly (1-sentence, precise). Otherwise we fall
+back to vector retrieval over the FAISS index.
 """
 from __future__ import annotations
 
 from typing import Optional
 
+from .fact_intent import detect_field, detect_scheme
+from .facts_store import get_facts_store
 from .responder import (
     Response,
     build_answer_response,
+    build_fact_response,
     build_not_found_response,
     build_refuse_response,
     format_response,
@@ -19,11 +25,23 @@ from .router import classify
 DEFAULT_TOP_K = 4
 
 
-def answer_query(query: str, scheme_filter: Optional[str] = None) -> Response:
-    """Run the full pipeline for one user query and return a ``Response``.
+def _try_structured_fact(query: str, scheme_filter: Optional[str]) -> Optional[Response]:
+    """If the query asks for a known field on a known scheme, return a fact response."""
+    field = detect_field(query)
+    if not field:
+        return None
+    facts = get_facts_store()
+    scheme = scheme_filter or detect_scheme(query, facts.schemes())
+    if not scheme:
+        return None
+    rec = facts.get(scheme, field)
+    if not rec:
+        return None
+    return build_fact_response(rec)
 
-    The caller decides how to display it (see ``format_response``).
-    """
+
+def answer_query(query: str, scheme_filter: Optional[str] = None) -> Response:
+    """Run the full pipeline for one user query and return a ``Response``."""
     decision = classify(query)
 
     if decision.decision == "REFUSE":
@@ -32,11 +50,15 @@ def answer_query(query: str, scheme_filter: Optional[str] = None) -> Response:
     if decision.decision == "NOT_FOUND":
         return build_not_found_response()
 
-    # decision.decision == "ANSWER" → run retrieval, then ground or downgrade.
+    # ANSWER branch: consult structured facts first.
+    fact_resp = _try_structured_fact(query, scheme_filter)
+    if fact_resp is not None:
+        return fact_resp
+
+    # Fallback: vector retrieval + grounded snippet.
     hits = get_retriever().search(query, top_k=DEFAULT_TOP_K, scheme_name=scheme_filter)
     return build_answer_response(query, hits)
 
 
 def answer_query_text(query: str, scheme_filter: Optional[str] = None) -> str:
-    """Convenience: run the pipeline and return the formatted display string."""
     return format_response(answer_query(query, scheme_filter=scheme_filter))

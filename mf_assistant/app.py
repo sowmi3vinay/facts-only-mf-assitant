@@ -3,16 +3,10 @@ from __future__ import annotations
 
 import streamlit as st
 
-from mf_assistant.prompts import (
-    DISCLAIMER,
-    EXAMPLE_QUESTIONS,
-    REFUSAL_ADVICE,
-    REFUSAL_PII,
-    WELCOME,
-)
-from mf_assistant.responder import compose, format_for_display
+from mf_assistant.pipeline import answer_query
+from mf_assistant.prompts import DISCLAIMER, EXAMPLE_QUESTIONS, WELCOME
+from mf_assistant.responder import format_response
 from mf_assistant.retriever import get_retriever
-from mf_assistant.router import route
 
 
 st.set_page_config(page_title="Facts-Only MF Assistant for Kuvera", page_icon=":bar_chart:")
@@ -33,7 +27,7 @@ for i, q in enumerate(EXAMPLE_QUESTIONS):
 query = st.text_input(
     "Ask a factual question about an approved scheme:",
     value=st.session_state.query,
-    placeholder="e.g. What is the exit load on Demo Flexi Cap Fund?",
+    placeholder="e.g. What is the exit load on HDFC Flexi Cap Fund?",
 )
 
 ANY_SCHEME = "Any scheme"
@@ -49,26 +43,16 @@ scheme_choice = st.selectbox(
 submit = st.button("Ask", type="primary")
 
 if submit and query.strip():
-    decision = route(query)
+    scheme_filter = None if scheme_choice == ANY_SCHEME else scheme_choice
+    response = answer_query(query, scheme_filter=scheme_filter)
 
     with st.container(border=True):
-        if decision.decision == "refuse_pii":
-            st.warning(REFUSAL_PII)
-        elif decision.decision == "refuse_advice":
-            st.warning(REFUSAL_ADVICE)
-        elif decision.decision == "refuse_scope":
-            st.info("Please enter a factual question about an approved scheme.")
+        if response.kind == "refuse":
+            st.warning(format_response(response))
+        elif response.kind == "not_found":
+            st.info(format_response(response))
         else:
-            scheme_filter = None if scheme_choice == ANY_SCHEME else scheme_choice
-            hits = retriever.search(query, top_k=4, scheme_name=scheme_filter)
-            if not hits and scheme_filter:
-                st.info(
-                    f"No indexed documents matched **{scheme_filter}** for this question. "
-                    "Try 'Any scheme' or rephrase."
-                )
-            else:
-                answer = compose(hits, query=query)
-                st.markdown(format_for_display(answer))
+            st.markdown(format_response(response))
 
 with st.expander("What this assistant will and won't answer"):
     st.markdown(

@@ -19,10 +19,15 @@ You MUST refuse:
 - Anything requesting or storing PII (PAN, Aadhaar, account numbers, OTP, phone, email).
 """
 
+# One official educational source we cite in refusals so the user has somewhere
+# legitimate to learn more without us giving advice.
+EDUCATIONAL_SOURCE_URL = "https://investor.sebi.gov.in/"
+
 REFUSAL_ADVICE = (
-    "I can only share factual information from official sources, not investment advice "
-    "or recommendations. For guidance on suitability or returns, please refer to the "
-    "official AMC factsheet and SEBI investor education portal."
+    "I can only share factual information from official sources. I don't provide "
+    "investment advice, recommendations, buy/sell guidance, portfolio allocation "
+    "help, or return predictions. For investor education, see the SEBI investor "
+    "portal."
 )
 
 REFUSAL_PII = (
@@ -31,17 +36,23 @@ REFUSAL_PII = (
     "remove these details and ask a factual scheme question instead."
 )
 
-REFUSAL_OUT_OF_SCOPE = (
-    "I couldn't find this in the approved official sources I have access to. "
-    "Please check the AMC factsheet, AMFI, or SEBI investor portal for verified details."
+NOT_FOUND_MESSAGE = (
+    "I couldn't verify this from the official sources I have indexed. Please "
+    "check the AMC factsheet, AMFI, or SEBI investor portal for the latest details."
 )
+
+# Kept for backward compatibility with older imports.
+REFUSAL_OUT_OF_SCOPE = NOT_FOUND_MESSAGE
 
 DISCLAIMER = "Facts-only. No investment advice."
 
-WELCOME = "Ask factual questions about approved mutual fund schemes — sourced only from official AMC, AMFI, SEBI, and Kuvera help pages."
+WELCOME = (
+    "Ask factual questions about approved mutual fund schemes — sourced only from "
+    "official AMC, AMFI, SEBI, and Kuvera help pages."
+)
 
 EXAMPLE_QUESTIONS = [
-    "What is the expense ratio of Demo Large Cap Fund - Direct Growth?",
-    "What is the exit load on Demo Flexi Cap Fund?",
-    "How do I download my capital gains statement on Kuvera?",
+    "What is the lock-in period for HDFC ELSS Tax Saver Fund?",
+    "What is the benchmark of HDFC Top 100 Fund?",
+    "What is the exit load on HDFC Flexi Cap Fund?",
 ]

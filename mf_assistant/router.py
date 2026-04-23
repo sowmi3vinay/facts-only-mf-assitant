@@ -1,17 +1,45 @@
-"""Query router: decides whether to answer, refuse for PII, or refuse for advice."""
+"""Query router.
+
+Classifies a user query into one of three buckets:
+
+- ``ANSWER``    — proceed to retrieval and grounded response.
+- ``REFUSE``    — investment-advice / recommendation / PII; respond with a polite refusal.
+- ``NOT_FOUND`` — empty query or otherwise unanswerable up front.
+
+The retriever/responder layer may *also* downgrade an ``ANSWER`` decision to
+``NOT_FOUND`` later if the retrieved context is insufficient to ground a
+factual answer.
+"""
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
 from typing import Literal
 
-Decision = Literal["answer", "refuse_pii", "refuse_advice", "refuse_scope"]
+# Public decision labels.
+Decision = Literal["ANSWER", "REFUSE", "NOT_FOUND"]
+
+# Internal sub-reason for refusals (helps the responder pick the right canned text).
+RefuseReason = Literal["pii", "advice", "scope", ""]
 
 
 @dataclass
 class RouteResult:
     decision: Decision
-    reason: str
+    refuse_reason: RefuseReason = ""
+    detail: str = ""
+
+    # ---- Backward-compat shim for older callers that read ``.decision`` as
+    #      one of {"answer","refuse_pii","refuse_advice","refuse_scope"}. ----
+    @property
+    def legacy_decision(self) -> str:
+        if self.decision == "ANSWER":
+            return "answer"
+        if self.decision == "REFUSE" and self.refuse_reason == "pii":
+            return "refuse_pii"
+        if self.decision == "REFUSE" and self.refuse_reason == "advice":
+            return "refuse_advice"
+        return "refuse_scope"
 
 
 # --- PII patterns (do not log matches; we only flag presence) ---
@@ -45,47 +73,44 @@ def contains_pii(text: str) -> bool:
     """Return True if the text appears to contain PII we refuse to handle."""
     if not text:
         return False
-    if _PAN_RE.search(text):
-        return True
-    if _AADHAAR_RE.search(text):
-        return True
-    if _PHONE_RE.search(text):
-        return True
-    if _EMAIL_RE.search(text):
-        return True
-    if _OTP_RE.search(text):
-        return True
-    if _ACCT_RE.search(text):
-        return True
-    return False
+    return bool(
+        _PAN_RE.search(text)
+        or _AADHAAR_RE.search(text)
+        or _PHONE_RE.search(text)
+        or _EMAIL_RE.search(text)
+        or _OTP_RE.search(text)
+        or _ACCT_RE.search(text)
+    )
 
 
 def looks_like_advice(text: str) -> bool:
-    t = text.lower()
+    t = (text or "").lower()
     return any(k in t for k in _ADVICE_KEYWORDS)
 
 
 def looks_factual(text: str) -> bool:
-    t = text.lower()
+    t = (text or "").lower()
     return any(k in t for k in _FACT_KEYWORDS)
 
 
-def route(query: str) -> RouteResult:
-    """Decide how to handle the user's query.
+def classify(query: str) -> RouteResult:
+    """Classify the query into ANSWER / REFUSE / NOT_FOUND.
 
-    Order of checks matters: PII first, then advice/recommendation intent,
-    then a soft factual intent check.
+    Order of checks: PII → advice/recommendation → empty → ANSWER.
     """
     q = (query or "").strip()
     if not q:
-        return RouteResult("refuse_scope", "Empty query.")
+        return RouteResult("NOT_FOUND", "", "Empty query.")
 
     if contains_pii(q):
-        return RouteResult("refuse_pii", "PII detected in query.")
+        return RouteResult("REFUSE", "pii", "PII detected in query.")
 
     if looks_like_advice(q):
-        return RouteResult("refuse_advice", "Query asks for advice or recommendation.")
+        return RouteResult("REFUSE", "advice", "Query asks for advice or recommendation.")
 
-    # If it doesn't match any factual keyword and is very short, still try to answer;
-    # the retriever will decide if there's grounded context.
-    return RouteResult("answer", "Factual query; route to retrieval.")
+    return RouteResult("ANSWER", "", "Factual query; route to retrieval.")
+
+
+# Backward-compat alias for older callers.
+def route(query: str) -> RouteResult:
+    return classify(query)

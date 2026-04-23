@@ -1,0 +1,65 @@
+start with 8 URLs first, not all 15–25. That is enough to build ingestion and retrieval on a small corpus, then you can expand once the pipeline works. HDFC’s factsheets page is current, and AMFI/SEBI provide the official investor-education pages you’ll want for statement/riskometer queries.
+Exact 8 starter URLs
+Use these in sources.csv:
+HDFC factsheets landing page
+ https://www.hdfcfund.com/mutual-funds/factsheets
+ Good for current factsheet discovery across schemes.
+HDFC Top 100 Fund — KIM
+ https://files.hdfcfund.com/s3fs-public/KIM/2024-11/KIM%20-%20HDFC%20Top%20100%20Fund%20dated%20November%2021%2C%202024.pdf
+ Covers large-cap scheme basics, benchmark, riskometer, and key terms.
+HDFC Flexi Cap Fund — scheme page
+ https://www.hdfcfund.com/explore/mutual-funds/hdfc-flexi-cap-fund/direct
+ Public scheme page for one of your target categories.
+HDFC Flexi Cap Fund — KIM
+ https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20Flexi%20Cap%20Fund%20dated%20May%2030%2C%202025.pdf
+ Good structured source for benchmark, riskometer, and scheme details.
+HDFC ELSS Tax Saver — scheme page
+ https://www.hdfcfund.com/explore/mutual-funds/hdfc-elss-tax-saver/direct
+ Public scheme page for the ELSS track.
+HDFC ELSS Tax Saver — KIM
+ https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20ELSS%20Tax%20saver%20dated%20May%2030%2C%202025.pdf
+ Useful for lock-in, benchmark, and key scheme facts.
+HDFC Mid Cap Fund — scheme page
+ https://www.hdfcfund.com/explore/mutual-funds/hdfc-mid-cap-fund/direct
+ Public mid-cap scheme page.
+HDFC Small Cap Fund — scheme page
+ https://www.hdfcfund.com/explore/mutual-funds/hdfc-small-cap-fund/direct
+ Public small-cap scheme page.
+Why these 8
+This set gives you:
+all 5 categories you chose under HDFC,
+both HTML and PDF sources,
+enough content to test questions like expense ratio, exit load, lock-in, benchmark, and riskometer,
+without burning credits on a full 20-page pipeline yet. The KIM pages are especially useful because they are structured scheme documents.
+Next step in Replit
+Use this next prompt:
+Writing
+Implement the next step using the existing UI.
+Task:
+Build ingestion and parsing for a small starter corpus only.
+Requirements:
+Read source URLs from sources.csv
+Support both HTML pages and PDF documents
+Download/store raw content in data/raw
+Extract clean text from each source
+Save normalized output with metadata:
+source_id
+source_type
+source_name
+url
+scheme_name
+page_type
+fetched_at
+last_updated_from_source
+text
+Keep the code modular:
+ingest.py
+parser.py
+normalizer.py (if needed)
+Do not build embeddings, vector DB, scheduler, or full retrieval yet
+Start only with the first 8 starter URLs from sources.csv
+Add basic error handling, timeout handling, and a simple ingestion log
+Keep the UI unchanged
+Goal:
+At the end, I should be able to run ingestion and see parsed text + metadata for the 8 starter URLs.
+

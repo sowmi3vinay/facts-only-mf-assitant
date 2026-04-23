@@ -1,11 +1,9 @@
-scheme_id,scheme_name,amc,doc_type,url,last_checked
-DEMO_LARGE_CAP,Demo Large Cap Fund - Direct Growth,Demo AMC,factsheet,https://example-amc.com/demo-large-cap/factsheet.pdf,2026-04-01
-DEMO_LARGE_CAP,Demo Large Cap Fund - Direct Growth,Demo AMC,sid,https://example-amc.com/demo-large-cap/sid.pdf,2026-04-01
-DEMO_FLEXI_CAP,Demo Flexi Cap Fund - Direct Growth,Demo AMC,factsheet,https://example-amc.com/demo-flexi-cap/factsheet.pdf,2026-04-01
-DEMO_ELSS,Demo ELSS Tax Saver Fund - Direct Growth,Demo AMC,factsheet,https://example-amc.com/demo-elss/factsheet.pdf,2026-04-01
-KUVERA_HELP,Kuvera Help - Statements,Kuvera,help,https://kuvera.in/help/statements,2026-04-01
-KUVERA_HELP,Kuvera Help - Capital Gains,Kuvera,help,https://kuvera.in/help/capital-gains,2026-04-01
-AMFI_RISKO,AMFI Riskometer Reference,AMFI,reference,https://www.amfiindia.com/investor-corner/investor-center/risk-o-meter.html,2026-04-01
-SEBI_INVESTOR_ED,SEBI Investor Education,SEBI,reference,https://investor.sebi.gov.in/,2026-04-01
-# TODO: Replace demo entries with real AMC factsheet/SID URLs for each scheme you want to support.
-# TODO: Keep this file limited to AMC, AMFI, SEBI, and Kuvera official help URLs only.
+source_id,source_name,scheme_name,source_type,page_type,url,last_updated_from_source
+HDFC_FACTSHEETS_INDEX,HDFC Factsheets Landing,HDFC (multi-scheme),html,factsheet_index,https://www.hdfcfund.com/mutual-funds/factsheets,
+HDFC_TOP100_KIM,HDFC Top 100 Fund - KIM (Nov 2024),HDFC Top 100 Fund,pdf,kim,https://files.hdfcfund.com/s3fs-public/KIM/2024-11/KIM%20-%20HDFC%20Top%20100%20Fund%20dated%20November%2021%2C%202024.pdf,2024-11-21
+HDFC_FLEXICAP_PAGE,HDFC Flexi Cap Fund - Scheme Page,HDFC Flexi Cap Fund - Direct,html,scheme_page,https://www.hdfcfund.com/explore/mutual-funds/hdfc-flexi-cap-fund/direct,
+HDFC_FLEXICAP_KIM,HDFC Flexi Cap Fund - KIM (May 2025),HDFC Flexi Cap Fund - Direct,pdf,kim,https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20Flexi%20Cap%20Fund%20dated%20May%2030%2C%202025.pdf,2025-05-30
+HDFC_ELSS_PAGE,HDFC ELSS Tax Saver - Scheme Page,HDFC ELSS Tax Saver - Direct,html,scheme_page,https://www.hdfcfund.com/explore/mutual-funds/hdfc-elss-tax-saver/direct,
+HDFC_ELSS_KIM,HDFC ELSS Tax Saver - KIM (May 2025),HDFC ELSS Tax Saver - Direct,pdf,kim,https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20ELSS%20Tax%20saver%20dated%20May%2030%2C%202025.pdf,2025-05-30
+HDFC_MIDCAP_PAGE,HDFC Mid Cap Fund - Scheme Page,HDFC Mid Cap Fund - Direct,html,scheme_page,https://www.hdfcfund.com/explore/mutual-funds/hdfc-mid-cap-fund/direct,
+HDFC_SMALLCAP_PAGE,HDFC Small Cap Fund - Scheme Page,HDFC Small Cap Fund - Direct,html,scheme_page,https://www.hdfcfund.com/explore/mutual-funds/hdfc-small-cap-fund/direct,

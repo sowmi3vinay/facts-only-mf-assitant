@@ -51,7 +51,7 @@ if submit and query.strip():
         else:
             retriever = get_retriever()
             hits = retriever.search(query, top_k=4)
-            answer = compose(hits)
+            answer = compose(hits, query=query)
             st.markdown(format_for_display(answer))
 
 with st.expander("What this assistant will and won't answer"):

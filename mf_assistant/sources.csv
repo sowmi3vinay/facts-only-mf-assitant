@@ -1,0 +1,11 @@
+scheme_id,scheme_name,amc,doc_type,url,last_checked
+DEMO_LARGE_CAP,Demo Large Cap Fund - Direct Growth,Demo AMC,factsheet,https://example-amc.com/demo-large-cap/factsheet.pdf,2026-04-01
+DEMO_LARGE_CAP,Demo Large Cap Fund - Direct Growth,Demo AMC,sid,https://example-amc.com/demo-large-cap/sid.pdf,2026-04-01
+DEMO_FLEXI_CAP,Demo Flexi Cap Fund - Direct Growth,Demo AMC,factsheet,https://example-amc.com/demo-flexi-cap/factsheet.pdf,2026-04-01
+DEMO_ELSS,Demo ELSS Tax Saver Fund - Direct Growth,Demo AMC,factsheet,https://example-amc.com/demo-elss/factsheet.pdf,2026-04-01
+KUVERA_HELP,Kuvera Help - Statements,Kuvera,help,https://kuvera.in/help/statements,2026-04-01
+KUVERA_HELP,Kuvera Help - Capital Gains,Kuvera,help,https://kuvera.in/help/capital-gains,2026-04-01
+AMFI_RISKO,AMFI Riskometer Reference,AMFI,reference,https://www.amfiindia.com/investor-corner/investor-center/risk-o-meter.html,2026-04-01
+SEBI_INVESTOR_ED,SEBI Investor Education,SEBI,reference,https://investor.sebi.gov.in/,2026-04-01
+# TODO: Replace demo entries with real AMC factsheet/SID URLs for each scheme you want to support.
+# TODO: Keep this file limited to AMC, AMFI, SEBI, and Kuvera official help URLs only.

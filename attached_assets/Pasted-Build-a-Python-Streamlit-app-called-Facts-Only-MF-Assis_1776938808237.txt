@@ -1,0 +1,73 @@
+Build a Python Streamlit app called "Facts-Only MF Assistant for Kuvera".
+Goal:
+Create a small RAG-based chatbot that answers only factual questions about a limited set of mutual fund schemes using official public sources only.
+Requirements:
+The app must answer only factual mutual fund questions such as:
+expense ratio
+exit load
+minimum SIP
+lock-in period
+benchmark
+riskometer
+how to download statements / capital gains statement
+The app must refuse:
+investment advice
+buy/sell suggestions
+recommendations
+portfolio allocation questions
+“which fund is better”
+return prediction / performance comparison questions
+Every valid answer must:
+be 3 sentences or less
+include exactly 1 source link
+include a line: "Last updated from sources: ..."
+be grounded only in retrieved context
+never fabricate facts
+Use a small-corpus RAG design:
+source registry file for approved URLs
+ingestion pipeline for HTML/PDF public pages
+text extraction and chunking
+embeddings-based retrieval
+answer generation from retrieved chunks only
+Use only official public sources:
+AMC
+AMFI
+SEBI
+optional Kuvera public help pages
+Do not use third-party blogs.
+Safety constraints:
+no PII collection or storage
+do not accept/store PAN, Aadhaar, account numbers, OTPs, phone numbers, or emails
+no performance claims
+if asked about returns, performance, or suitability, refuse and point to official factsheet/investor education links
+UI requirements:
+Streamlit app
+title
+one-line welcome message
+3 example questions
+disclaimer: "Facts-only. No investment advice."
+input box and answer card
+Project structure should include:
+app.py
+sources.csv
+ingest.py
+parser.py
+chunker.py
+build_index.py
+retriever.py
+router.py
+responder.py
+prompts.py
+README.md
+sample_qa.md
+Use clean, modular code and include TODO comments where manual source configuration is needed.
+Start with placeholder/demo data support so the app can run before full ingestion is completed.
+Please first generate:
+folder structure
+starter code files
+minimal working Streamlit UI
+simple query router with answer/refuse logic
+placeholder retrieval pipeline
+README with setup instructions
+Do not over-engineer deployment yet.
+

@@ -1,13 +1,27 @@
 """Streamlit UI for the Facts-Only MF Assistant for Kuvera."""
 from __future__ import annotations
 
+import sys
+import os
+
+# Trace startup
+print("DEBUG: app.py starting...")
+print(f"DEBUG: Python version: {sys.version}")
+print(f"DEBUG: CWD: {os.getcwd()}")
+
 import streamlit as st
 
+print("DEBUG: Streamlit imported. Loading pipeline...")
 from mf_assistant.pipeline import answer_query
+print("DEBUG: Pipeline loaded. Loading prompts...")
 from mf_assistant.prompts import DISCLAIMER, EXAMPLE_QUESTIONS, WELCOME
+print("DEBUG: Prompts loaded. Loading responder...")
 from mf_assistant.responder import format_response
+print("DEBUG: Responder loaded. Loading retriever...")
 from mf_assistant.retriever import get_retriever
+print("DEBUG: Retriever loaded. Loading thread_store...")
 from mf_assistant import thread_store
+print("DEBUG: All imports completed successfully.")
 
 st.set_page_config(page_title="Facts-Only MF Assistant for Kuvera", page_icon=":bar_chart:", layout="wide")
 
@@ -109,7 +123,12 @@ with st.form("query_form", clear_on_submit=True):
     )
 
     ANY_SCHEME = "Any scheme"
-    retriever = get_retriever()
+    
+    @st.cache_resource
+    def get_cached_retriever():
+        return get_retriever()
+        
+    retriever = get_cached_retriever()
     scheme_options = [ANY_SCHEME] + retriever.list_schemes()
     scheme_choice = st.selectbox(
         "Limit answer to scheme (optional)",

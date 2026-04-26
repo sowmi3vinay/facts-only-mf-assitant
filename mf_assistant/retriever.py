@@ -74,8 +74,14 @@ class Retriever:
             build_index(verbose=False)
         self._meta = self._read_meta(META_PATH)
         if self._meta:
-            import faiss  # type: ignore
-            self._index = faiss.read_index(str(FAISS_INDEX_PATH))
+            try:
+                import faiss  # type: ignore
+                print("DEBUG: FAISS imported successfully.")
+                self._index = faiss.read_index(str(FAISS_INDEX_PATH))
+            except Exception as e:
+                print(f"ERROR: Failed to import FAISS or read index: {e}")
+                # Don't crash the whole app, just disable retrieval
+                self._index = None
             
             # Initialize keyword index
             texts = [m.get("text", "") for m in self._meta]

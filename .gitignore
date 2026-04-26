@@ -40,6 +40,8 @@ testem.log
 # System Files
 .DS_Store
 Thumbs.db
+streamlit_app.py
+!streamlit_app.py
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md

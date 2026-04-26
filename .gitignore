@@ -57,12 +57,22 @@ venv/
 .venv/
 
 # Project Data
+# Ignore everything in data by default
+mf_assistant/data/*
+# Allow the specific pre-built files
+!mf_assistant/data/chunks/
+!mf_assistant/data/chunks/chunks.jsonl
+!mf_assistant/data/index/
+!mf_assistant/data/index/faiss.index
+!mf_assistant/data/index/meta.jsonl
+!mf_assistant/data/index/info.json
+!mf_assistant/data/facts/
+!mf_assistant/data/facts/facts.jsonl
+!mf_assistant/data/threads.json
+
+# Keep ignoring raw, normalized and logs
 mf_assistant/data/raw/
 mf_assistant/data/normalized/
-mf_assistant/data/chunks/
-mf_assistant/data/index/
-mf_assistant/data/facts/
-mf_assistant/data/threads.json
 mf_assistant/data/*.log
 
 # Evaluation

@@ -1,5 +1,7 @@
 # Facts-Only MF Assistant for Kuvera
 
+This project is a facts-only mutual fund FAQ assistant using official AMC, AMFI, and SEBI sources with deterministic, citation-backed responses.
+
 A small, RAG-based Streamlit chatbot that answers **only factual** questions
 about a limited set of mutual fund schemes, using **official public sources**
 only (AMC factsheets/SIDs, AMFI, SEBI, and Kuvera help pages).

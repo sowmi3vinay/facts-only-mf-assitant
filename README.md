@@ -1,3 +1,15 @@
+---
+title: Facts-Only Mutual Fund FAQ Assistant
+emoji: 📊
+colorFrom: green
+colorTo: blue
+sdk: streamlit
+sdk_version: 1.56.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # Facts-Only Mutual Fund FAQ Assistant (Kuvera Context)
 This repository includes pre-built data (chunks, index, facts) so the application can run without rebuilding the pipeline.
 

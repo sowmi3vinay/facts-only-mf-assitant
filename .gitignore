@@ -42,6 +42,8 @@ testem.log
 Thumbs.db
 streamlit_app.py
 !streamlit_app.py
+app.py
+!app.py
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md

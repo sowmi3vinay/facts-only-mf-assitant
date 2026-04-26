@@ -7,14 +7,16 @@ back to vector retrieval over the FAISS index.
 """
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 
 from .fact_intent import detect_field, detect_scheme
 from .facts_store import get_facts_store
+from .memory import rewrite_query
 from .responder import (
     Response,
     build_answer_response,
     build_fact_response,
+    build_howto_response,
     build_not_found_response,
     build_refuse_response,
     format_response,
@@ -40,8 +42,13 @@ def _try_structured_fact(query: str, scheme_filter: Optional[str]) -> Optional[R
     return build_fact_response(rec)
 
 
-def answer_query(query: str, scheme_filter: Optional[str] = None) -> Response:
+def answer_query(query: str, scheme_filter: Optional[str] = None, history: Optional[List[dict]] = None) -> Response:
     """Run the full pipeline for one user query and return a ``Response``."""
+    
+    # Apply memory/context rewriting if history is available
+    if history:
+        query = rewrite_query(query, history)
+        
     decision = classify(query)
 
     if decision.decision == "REFUSE":
@@ -49,6 +56,10 @@ def answer_query(query: str, scheme_filter: Optional[str] = None) -> Response:
 
     if decision.decision == "NOT_FOUND":
         return build_not_found_response()
+
+    if decision.decision == "HOW_TO":
+        hits = get_retriever().search(query, top_k=DEFAULT_TOP_K, allowed_page_types={"education", "guide"})
+        return build_howto_response(query, hits)
 
     # ANSWER branch: consult structured facts first.
     fact_resp = _try_structured_fact(query, scheme_filter)
@@ -60,5 +71,5 @@ def answer_query(query: str, scheme_filter: Optional[str] = None) -> Response:
     return build_answer_response(query, hits)
 
 
-def answer_query_text(query: str, scheme_filter: Optional[str] = None) -> str:
-    return format_response(answer_query(query, scheme_filter=scheme_filter))
+def answer_query_text(query: str, scheme_filter: Optional[str] = None, history: Optional[List[dict]] = None) -> str:
+    return format_response(answer_query(query, scheme_filter=scheme_filter, history=history))

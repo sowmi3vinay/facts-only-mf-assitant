@@ -68,7 +68,7 @@ def main(verbose: bool = True) -> Path:
     records = [rec for _, rec in chosen.values()]
     out_path = write_facts(records, FACTS_PATH)
     if verbose:
-        print(f"Wrote {len(records)} facts → {out_path}")
+        print(f"Wrote {len(records)} facts -> {out_path}")
         for r in records:
             print(f"  {r.scheme_name:32s} | {r.field_name:18s} = {r.field_value}")
     return out_path

@@ -1,0 +1,10 @@
+[
+  {
+    "id": 1,
+    "category": "FACT",
+    "query": "What is the exit load of HDFC Small Cap Fund?",
+    "expected_type": "answer",
+    "expected_field": "exit_load",
+    "expected_keywords": ["1.00%"]
+  }
+]

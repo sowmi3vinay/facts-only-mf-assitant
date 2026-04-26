@@ -22,3 +22,7 @@ EMBED_DIM = 384
 # Retrieval defaults
 DEFAULT_TOP_K = 5
 DEFAULT_OVERFETCH = 30  # fetch more than top_k so post-filters still leave enough
+
+# LLM Control
+USE_LLM_REWRITE = True
+USE_LLM_POLISH = False  # Set to True to allow LLM to polish final answers

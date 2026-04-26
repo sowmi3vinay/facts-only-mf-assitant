@@ -1,52 +1,109 @@
 # Sample Q&A
 
-Examples of how the assistant should behave. Demo answers below use the
-placeholder corpus shipped in `build_index.py` (`DEMO_CHUNKS`).
+### 1. Query
+What is the lock-in period of HDFC ELSS Tax Saver Fund?
 
-## Allowed (factual)
+Answer: Lock-in period for HDFC ELSS Tax Saver - Direct: 3 years (statutory).
 
-**Q:** What is the expense ratio of Demo Large Cap Fund - Direct Growth?
-**A:** Demo Large Cap Fund - Direct Growth has a total expense ratio (TER) of 0.85% per annum as per the latest factsheet. The scheme's benchmark is the NIFTY 100 TRI. The riskometer rating is 'Very High'.
-Source: https://example-amc.com/demo-large-cap/factsheet.pdf
-Last updated from sources: 2026-04-01
+Source: https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20ELSS%20Tax%20saver%20dated%20May%2030%2C%202025.pdf
 
----
-
-**Q:** What is the exit load on Demo Flexi Cap Fund?
-**A:** Demo Flexi Cap Fund - Direct Growth has a total expense ratio of 0.72% per annum. Exit load is 1% if redeemed within 12 months, nil thereafter. The benchmark is NIFTY 500 TRI and the riskometer rating is 'Very High'.
-Source: https://example-amc.com/demo-flexi-cap/factsheet.pdf
-Last updated from sources: 2026-04-01
+Last updated from sources: 2025-05-30
 
 ---
 
-**Q:** What is the lock-in period for Demo ELSS Tax Saver Fund?
-**A:** Demo ELSS Tax Saver Fund - Direct Growth has a statutory lock-in period of 3 years (36 months) from the date of allotment of units. There is no exit load applicable since redemption is not permitted during the lock-in. Minimum SIP is Rs. 500.
-Source: https://example-amc.com/demo-elss/factsheet.pdf
-Last updated from sources: 2026-04-01
+### 2. Query
+What is the benchmark of HDFC Flexi Cap Fund?
+
+Answer: Benchmark for HDFC Flexi Cap Fund - Direct: NIFTY 500 Index.
+
+Source: https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20Flexi%20Cap%20Fund%20dated%20May%2030%2C%202025.pdf
+
+Last updated from sources: 2025-05-30
 
 ---
 
-**Q:** How do I download my capital gains statement on Kuvera?
-**A:** To download your capital gains statement on Kuvera, open Reports and select 'Capital Gains'. Choose the financial year and tap Download; the report is emailed to your registered address as a PDF for tax filing.
-Source: https://kuvera.in/help/capital-gains
-Last updated from sources: 2026-04-01
+### 3. Query
+What is the exit load of HDFC Small Cap Fund?
 
-## Refused (advice / recommendation / prediction)
+Answer: Exit load for HDFC Small Cap Fund - Direct: 1.00% if redeemed within 1 year.
 
-**Q:** Should I invest in Demo Large Cap Fund?
-**A:** I can only share factual information from official sources, not investment advice or recommendations. For guidance on suitability or returns, please refer to the official AMC factsheet and SEBI investor education portal.
+Source: https://www.hdfcfund.com/explore/mutual-funds/hdfc-small-cap-fund/direct
 
----
-
-**Q:** Which fund is better — Demo Large Cap or Demo Flexi Cap?
-**A:** *(Refused: comparison/recommendation.)*
+Last updated from sources: Not stated on source page
 
 ---
 
-**Q:** What return will Demo Flexi Cap Fund give next year?
-**A:** *(Refused: return prediction.)*
+### 4. Query
+What is the minimum SIP of HDFC Mid Cap Fund?
 
-## Refused (PII)
+Answer: Minimum SIP for HDFC Mid Cap Fund - Direct: ₹100 (purchase / switch-in).
 
-**Q:** My PAN is ABCDE1234F, can you fetch my statement?
-**A:** For your safety, I do not accept or store personal identifiers such as PAN, Aadhaar, account numbers, OTPs, phone numbers, or email addresses. Please remove these details and ask a factual scheme question instead.
+Source: https://files.hdfcfund.com/s3fs-public/KIM/2025-11/KIM%20-%20HDFC%20Mid%20Cap%20Fund%20dated%20November%2021%2C%202025_1.pdf
+
+Last updated from sources: 2025-11-21
+
+---
+
+### 5. Query
+What is the expense ratio of HDFC ELSS Tax Saver Fund?
+
+Answer: Expense ratio for HDFC ELSS Tax Saver - Direct: Up to 2.25% p.a. on the first ₹500 cr (SEBI Reg. 52(6) TER cap; see latest factsheet for current actual TER).
+
+Source: https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20ELSS%20Tax%20saver%20dated%20May%2030%2C%202025.pdf
+
+Last updated from sources: 2025-05-30
+
+---
+
+### 6. Query
+What is the riskometer of HDFC Flexi Cap Fund?
+
+Answer: Riskometer for HDFC Flexi Cap Fund - Direct: Very High.
+
+Source: https://www.hdfcfund.com/explore/mutual-funds/hdfc-flexi-cap-fund/direct
+
+Last updated from sources: Not stated on source page
+
+---
+
+### 7. Query
+How do I download a consolidated account statement?
+
+Answer: You can download your Consolidated Account Statement (CAS) from the official AMFI CAS page by following the instructions provided there.
+
+Source: https://www.amfiindia.com/investor/become-mf-distributor?zoneName=consolidatedAcct
+
+Last updated from sources: Not stated on source page
+
+---
+
+### 8. Query
+How do I download a capital gains statement?
+
+Answer: You can download your capital gains statement or tax report through Kuvera by visiting their Capital Gains report page. Follow the instructions on the official page for the latest process.
+
+Source: https://kuvera.in/reports/capital-gains
+
+Last updated from sources: Not stated on source page
+
+---
+
+### 9. Query
+Should I invest in HDFC Small Cap Fund?
+
+Answer: I can only share factual information from official sources. I don't provide investment advice, recommendations, buy/sell guidance, portfolio allocation help, or return predictions. For investor education, see the SEBI investor portal.
+
+Source: https://investor.sebi.gov.in/
+
+Last updated from sources: Not stated on source page
+
+---
+
+### 10. Query
+Which fund is better: HDFC Top 100 or HDFC Flexi Cap Fund?
+
+Answer: I can only share factual information from official sources. I don't provide investment advice, recommendations, buy/sell guidance, portfolio allocation help, or return predictions. For investor education, see the SEBI investor portal.
+
+Source: https://investor.sebi.gov.in/
+
+Last updated from sources: Not stated on source page

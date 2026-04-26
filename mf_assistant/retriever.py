@@ -15,9 +15,13 @@ from __future__ import annotations
 import json
 import os
 import sys
+import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 from .build_index import build as build_index
 from .config import (
@@ -59,6 +63,8 @@ class Retriever:
         self._model = None
         self._index = None
         self._meta: List[dict] = []
+        self._keyword_vectorizer = None
+        self._keyword_matrix = None
         self._load()
 
     # ---------- loading ----------
@@ -69,8 +75,16 @@ class Retriever:
         self._meta = self._read_meta(META_PATH)
         if self._meta:
             import faiss  # type: ignore
-
             self._index = faiss.read_index(str(FAISS_INDEX_PATH))
+            
+            # Initialize keyword index
+            texts = [m.get("text", "") for m in self._meta]
+            self._keyword_vectorizer = TfidfVectorizer(
+                stop_words='english',
+                ngram_range=(1, 2),
+                min_df=1
+            )
+            self._keyword_matrix = self._keyword_vectorizer.fit_transform(texts)
 
     @staticmethod
     def _read_meta(path: Path) -> List[dict]:
@@ -112,47 +126,85 @@ class Retriever:
         *,
         scheme_name: Optional[str] = None,
         source_type: Optional[str] = None,
-        min_score: float = 0.10,
+        allowed_page_types: Optional[set[str]] = None,
+        min_score: float = 0.05,
     ) -> List[Hit]:
-        """Return up to ``top_k`` chunks most relevant to ``query``.
-
-        Filters:
-            scheme_name — case-insensitive substring match on the chunk's scheme.
-            source_type — exact match on 'html' or 'pdf'.
-        """
+        """Return up to ``top_k`` chunks using hybrid (vector + keyword) search."""
         if not query or not self._index or not self._meta:
             return []
 
-        import numpy as np  # noqa: F401
-
+        # 1. Vector search
         model = self._ensure_model()
-        qv = model.encode(
-            [query], convert_to_numpy=True, normalize_embeddings=True
-        ).astype("float32")
+        qv = model.encode([query], convert_to_numpy=True, normalize_embeddings=True).astype("float32")
+        k_fetch = min(max(top_k * 2, DEFAULT_OVERFETCH), len(self._meta))
+        v_scores, v_idx = self._index.search(qv, k_fetch)
+        v_scores = v_scores[0]
+        v_idx = v_idx[0]
 
-        k = min(max(top_k * 1, DEFAULT_OVERFETCH), len(self._meta))
-        scores, idx = self._index.search(qv, k)
-        scores = scores[0]
-        idx = idx[0]
+        # 2. Keyword search
+        q_vec = self._keyword_vectorizer.transform([query])
+        k_scores = cosine_similarity(q_vec, self._keyword_matrix).flatten()
+        k_idx = k_scores.argsort()[::-1][:k_fetch]
+        k_scores_top = k_scores[k_idx]
 
+        # 3. Merge and Re-rank
+        merged_hits: Dict[int, float] = {} # meta_index -> final_score
+        
+        # Normalize scores to 0-1 for merging
+        # Vector scores are already cosine (0-1)
+        # Keyword scores are also cosine (0-1)
+        
+        # Weights
+        W_VECTOR = 0.6
+        W_KEYWORD = 0.4
+        
+        for s, i in zip(v_scores, v_idx):
+            if i >= 0:
+                merged_hits[int(i)] = merged_hits.get(int(i), 0) + float(s) * W_VECTOR
+        
+        for s, i in zip(k_scores_top, k_idx):
+            if s > 0:
+                merged_hits[int(i)] = merged_hits.get(int(i), 0) + float(s) * W_KEYWORD
+
+        # 4. Filter and Boost
         scheme_q = (scheme_name or "").strip().lower()
         stype_q = (source_type or "").strip().lower()
+        
+        # Simple scheme detection from query if not provided
+        if not scheme_q:
+            schemes = self.list_schemes()
+            for sname in schemes:
+                if sname.lower() in query.lower():
+                    scheme_q = sname.lower()
+                    break
 
-        hits: List[Hit] = []
-        for s, i in zip(scores, idx):
-            if i < 0 or i >= len(self._meta):
-                continue
-            score = float(s)
-            if score < min_score:
-                continue
+        final_hits: List[Hit] = []
+        # Sort by score descending
+        sorted_indices = sorted(merged_hits.items(), key=lambda x: x[1], reverse=True)
+        
+        for i, score in sorted_indices:
             m = self._meta[i]
-            if scheme_q and scheme_q not in (m.get("scheme_name", "") or "").lower():
+            
+            # Filters
+            if scheme_name and scheme_name.lower() not in (m.get("scheme_name", "") or "").lower():
                 continue
             if stype_q and stype_q != (m.get("source_type", "") or "").lower():
                 continue
-            hits.append(
+            if allowed_page_types and (m.get("page_type", "") or "").lower() not in allowed_page_types:
+                continue
+            
+            # Boosts
+            final_score = score
+            m_scheme = (m.get("scheme_name", "") or "").lower()
+            if scheme_q and scheme_q in m_scheme:
+                final_score += 0.2 # Substantial boost for correct scheme
+            
+            if final_score < min_score:
+                continue
+
+            final_hits.append(
                 Hit(
-                    score=score,
+                    score=final_score,
                     chunk_id=m.get("chunk_id", ""),
                     doc_id=m.get("doc_id", ""),
                     source_id=m.get("source_id", ""),
@@ -166,9 +218,10 @@ class Retriever:
                     text=m.get("text", ""),
                 )
             )
-            if len(hits) >= top_k:
+            if len(final_hits) >= top_k:
                 break
-        return hits
+        
+        return final_hits
 
 
 _singleton: Optional[Retriever] = None
@@ -187,18 +240,33 @@ def _cli(argv: list[str]) -> None:
     query = " ".join(argv) if argv else "What is the lock-in period for HDFC ELSS Tax Saver Fund?"
     print(f"Query: {query}\n")
     r = get_retriever()
+    
+    # Debug individual searches
+    model = r._ensure_model()
+    qv = model.encode([query], convert_to_numpy=True, normalize_embeddings=True).astype("float32")
+    v_scores, v_idx = r._index.search(qv, 3)
+    
+    print("--- Vector Hits ---")
+    for s, i in zip(v_scores[0], v_idx[0]):
+        if i >= 0:
+            print(f"Index: {i:3} | Score: {s:.3f} | Scheme: {r._meta[i].get('scheme_name')}")
+
+    q_vec = r._keyword_vectorizer.transform([query])
+    k_scores = cosine_similarity(q_vec, r._keyword_matrix).flatten()
+    k_idx = k_scores.argsort()[::-1][:3]
+    print("\n--- Keyword Hits (TF-IDF) ---")
+    for i in k_idx:
+        print(f"Index: {i:3} | Score: {k_scores[i]:.3f} | Scheme: {r._meta[i].get('scheme_name')}")
+
     hits = r.search(query, top_k=3)
+    print("\n--- Final Hybrid Hits (Merged & Boosted) ---")
     if not hits:
         print("(no hits)")
         return
     for rank, h in enumerate(hits, start=1):
         preview = h.text[:300].replace("\n", " ")
-        print(f"--- Rank {rank}  score={h.score:.3f} ---")
-        print(f"source_id   : {h.source_id}")
-        print(f"scheme_name : {h.scheme_name}")
-        print(f"source_type : {h.source_type}  page_type: {h.page_type}")
-        print(f"url         : {h.url}")
-        print(f"text[:300]  : {preview}…\n")
+        print(f"Rank {rank} | Final Score: {h.score:.3f} | Scheme: {h.scheme_name}")
+        print(f"Text: {preview}...\n")
 
 
 if __name__ == "__main__":

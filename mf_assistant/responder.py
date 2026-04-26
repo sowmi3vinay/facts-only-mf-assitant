@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 from .facts_store import FactRecord
+from .llm_client import generate_answer
 from .prompts import (
     EDUCATIONAL_SOURCE_URL,
     NOT_FOUND_MESSAGE,
@@ -46,7 +47,7 @@ _FIELD_LABELS = {
 
 
 def build_fact_response(fact: FactRecord) -> "Response":
-    """Format a structured fact as a 1-sentence grounded answer."""
+    """Format a structured fact as a 1-sentence grounded answer (deterministic)."""
     label = _FIELD_LABELS.get(fact.field_name, fact.field_name)
     text = f"{label} for {fact.scheme_name}: {fact.field_value}."
     return Response(
@@ -75,6 +76,10 @@ class Response:
 # ---------------------------------------------------------------------------
 # Tunables
 # ---------------------------------------------------------------------------
+
+# Flag to enable/disable LLM polishing. Set to False for 100% deterministic output.
+from .config import USE_LLM_POLISH
+USE_LLM = USE_LLM_POLISH
 
 # Below this cosine similarity, treat the top retrieval as too weak to ground
 # a factual answer. all-MiniLM-L6-v2 cosine scores on this corpus are roughly
@@ -189,6 +194,13 @@ def _window_snippet(chunk_text: str, query: str, window_chars: int = WINDOW_CHAR
         sp = snippet.rfind(" ")
         if sp > len(snippet) - 30:
             snippet = snippet[:sp]
+
+    # Clean up common PDF headers
+    snippet = re.sub(r"^(?:\d+\s+)?HDFC.*?Fund\s*(?:-\s*KIM)?\s*", "", snippet, flags=re.IGNORECASE)
+    snippet = re.sub(r"^KEY INFORMATION MEMORANDUM\s*", "", snippet, flags=re.IGNORECASE)
+    snippet = re.sub(r"^HDFC.*?Fund\s*", "", snippet, flags=re.IGNORECASE)
+    snippet = re.sub(r"\s+", " ", snippet).strip()
+
     return f"{prefix}{snippet}{suffix}"
 
 
@@ -215,22 +227,71 @@ def _is_grounded(top: Hit, query: str) -> bool:
 
 
 def build_answer_response(query: str, hits: List[Hit]) -> Response:
-    """Build an ANSWER response or downgrade to NOT_FOUND."""
+    """Build a response from retrieved chunks. Uses extractive snippets (deterministic)."""
     if not hits:
         return build_not_found_response()
-
+    
     top = hits[0]
-    if not _is_grounded(top, query):
+    if top.score < MIN_SCORE_FOR_ANSWER:
         return build_not_found_response()
 
-    snippet = _window_snippet(top.text, query, window_chars=WINDOW_CHARS)
-    snippet = _cap_sentences(snippet, MAX_SENTENCES)
-    if not snippet.strip():
-        return build_not_found_response()
+    # Try LLM synthesis only if enabled
+    if USE_LLM:
+        llm_output = generate_answer(query, top.text, top.url, top.last_updated_from_source)
+        if llm_output:
+            match = re.search(r"Answer:\s*(.*?)(?:\n|$)", llm_output, re.DOTALL | re.IGNORECASE)
+            if match:
+                text = match.group(1).strip()
+                # Double-check for typical hallucination phrases
+                forbidden = ["subject to change", "verify with latest factsheet", "consult your advisor"]
+                if not any(f in text.lower() for f in forbidden):
+                    return Response(
+                        kind="answer",
+                        text=text,
+                        url=top.url or None,
+                        last_updated=top.last_updated_from_source or None,
+                    )
+
+    # Deterministic fallback: extractive snippet
+    snippet = _window_snippet(top.text, query)
+    text = _cap_sentences(snippet, MAX_SENTENCES)
 
     return Response(
         kind="answer",
-        text=snippet,
+        text=text,
+        url=top.url or None,
+        last_updated=top.last_updated_from_source or None,
+    )
+
+
+def build_howto_response(query: str, hits: List[Hit]) -> Response:
+    """Build a HOW_TO response. Uses minimal safe instructions (deterministic)."""
+    if not hits:
+        return build_not_found_response()
+    top = hits[0]
+    
+    # Try LLM synthesis only if enabled
+    if USE_LLM:
+        llm_output = generate_answer(query, top.text, top.url, top.last_updated_from_source)
+        if llm_output:
+            match = re.search(r"Answer:\s*(.*?)(?:\n|$)", llm_output, re.DOTALL | re.IGNORECASE)
+            if match:
+                text = match.group(1).strip()
+                # Double-check grounding
+                forbidden = ["subject to change", "consult an advisor"]
+                if not any(f in text.lower() for f in forbidden):
+                    return Response(
+                        kind="howto",
+                        text=text,
+                        url=top.url or None,
+                        last_updated=top.last_updated_from_source or None,
+                    )
+
+    # Deterministic safe template
+    text = "You can refer to the official source for instructions."
+    return Response(
+        kind="howto",
+        text=text,
         url=top.url or None,
         last_updated=top.last_updated_from_source or None,
     )
@@ -253,18 +314,14 @@ def build_not_found_response() -> Response:
 
 def format_response(resp: Response) -> str:
     """Render the Response into the user-facing string in the spec format."""
-    if resp.kind == "answer":
-        lines = [f"Answer: {resp.text}"]
+    if resp.kind in ("answer", "howto", "refuse"):
+        lines = [f"Answer: {resp.text}" if resp.kind != "refuse" else resp.text]
         if resp.url:
             lines.append(f"Source: {resp.url}")
-        if resp.last_updated:
-            lines.append(f"Last updated from sources: {resp.last_updated}")
+        # Always include Last updated from sources if we have a URL/answer
+        date_str = resp.last_updated if resp.last_updated else "Not stated on source page"
+        lines.append(f"Last updated from sources: {date_str}")
         return "\n".join(lines)
-
-    if resp.kind == "refuse":
-        if resp.url:
-            return f"{resp.text}\n\nSource: {resp.url}"
-        return resp.text
 
     # not_found
     return resp.text

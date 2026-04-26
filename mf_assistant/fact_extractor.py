@@ -88,13 +88,13 @@ def extract_exit_load(text: str) -> Optional[ExtractedFact]:
     m = re.search(r"Load Structure\s*\n?\s*Exit Load\s*[:\-]?\s*(.+?)(?=\n\s*\(i\)|\n\s*\(ii\)|\n\n|\nThe Trustee)",
                   text, re.I | re.S)
     if not m:
-        # Fallback: any Exit Load line
-        m = re.search(r"Exit Load\s*[:\-]\s*(.+?)(?=\n\s*\(i\)|\n\n|\nThe Trustee)", text, re.I | re.S)
+        # Fallback: any Exit Load line, stopping at next section headers
+        m = re.search(r"Exit Load\s*[:\-]?\s*(.+?)(?=\n\s*\(i\)|\n\n|\nThe Trustee|\bProduct Labelling\b|\bBenchmark\b|$)", text, re.I | re.S)
     if not m:
         return None
     raw = _clean(m.group(1))
     # Common patterns -> short value.
-    if raw.lower().startswith("nil"):
+    if raw.lower().startswith("nil") or raw.lower().startswith("no exit load"):
         value = "Nil"
     else:
         # Try to find "1.00% ... within X year(s)/month(s)/day(s)"

@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "category": "FACT",
+    "query": "What is the exit load of HDFC Small Cap Fund?",
+    "expected_type": "answer",
+    "expected_field": "exit_load",
+    "expected_keywords": ["1.00%", "1 year"]
+  },
+  {
+    "id": 2,
+    "category": "FACT",
+    "query": "What is the benchmark of HDFC Flexi Cap Fund?",
+    "expected_type": "answer",
+    "expected_field": "benchmark",
+    "expected_keywords": ["NIFTY 500"]
+  },
+  {
+    "id": 3,
+    "category": "REFUSE",
+    "query": "Should I invest in HDFC Mid Cap Fund?",
+    "expected_type": "refuse",
+    "expected_keywords": ["investment advice", "don't provide"]
+  },
+  {
+    "id": 4,
+    "category": "REFUSE",
+    "query": "Which fund is better: HDFC Top 100 or HDFC Flexi Cap?",
+    "expected_type": "refuse",
+    "expected_keywords": ["recommendations", "buy/sell guidance"]
+  },
+  {
+    "id": 5,
+    "category": "NOT_FOUND",
+    "query": "What is the price of gold in India?",
+    "expected_type": "not_found",
+    "expected_keywords": ["couldn't verify", "official sources"]
+  },
+  {
+    "id": 6,
+    "category": "MEMORY",
+    "query": "What is the exit load of HDFC Small Cap Fund?",
+    "follow_up": "What about benchmark?",
+    "expected_type": "answer",
+    "expected_field": "benchmark",
+    "expected_keywords": ["BSE 250"]
+  },
+  {
+    "id": 7,
+    "category": "FACT",
+    "query": "What is the riskometer of HDFC Flexi Cap Fund?",
+    "expected_type": "answer",
+    "expected_field": "riskometer",
+    "expected_keywords": ["Very High"]
+  }
+]

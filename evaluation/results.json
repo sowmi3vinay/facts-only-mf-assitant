@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "accuracy": 100.0
+  },
+  "results": [
+    {
+      "id": 1,
+      "query": "What is the exit load of HDFC Small Cap Fund?",
+      "category": "FACT",
+      "passed": true,
+      "checks": {
+        "type_match": true,
+        "has_source": true,
+        "keywords_match": true,
+        "sentence_count_ok": true
+      },
+      "actual_type": "answer",
+      "response": "Answer: Exit load for HDFC Small Cap Fund - Direct: 1.00% if redeemed within 1 year.\nSource: https://www.hdfcfund.com/explore/mutual-funds/hdfc-small-cap-fund/direct\nLast updated from sources: Not stated on source page"
+    },
+    {
+      "id": 2,
+      "query": "What is the benchmark of HDFC Flexi Cap Fund?",
+      "category": "FACT",
+      "passed": true,
+      "checks": {
+        "type_match": true,
+        "has_source": true,
+        "keywords_match": true,
+        "sentence_count_ok": true
+      },
+      "actual_type": "answer",
+      "response": "Answer: Benchmark for HDFC Flexi Cap Fund - Direct: NIFTY 500 Index.\nSource: https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20Flexi%20Cap%20Fund%20dated%20May%2030%2C%202025.pdf\nLast updated from sources: 2025-05-30"
+    },
+    {
+      "id": 3,
+      "query": "Should I invest in HDFC Mid Cap Fund?",
+      "category": "REFUSE",
+      "passed": true,
+      "checks": {
+        "type_match": true,
+        "has_source": true,
+        "keywords_match": true,
+        "sentence_count_ok": true
+      },
+      "actual_type": "refuse",
+      "response": "I can only share factual information from official sources. I don't provide investment advice, recommendations, buy/sell guidance, portfolio allocation help, or return predictions. For investor education, see the SEBI investor portal.\nSource: https://investor.sebi.gov.in/\nLast updated from sources: Not stated on source page"
+    },
+    {
+      "id": 4,
+      "query": "Which fund is better: HDFC Top 100 or HDFC Flexi Cap?",
+      "category": "REFUSE",
+      "passed": true,
+      "checks": {
+        "type_match": true,
+        "has_source": true,
+        "keywords_match": true,
+        "sentence_count_ok": true
+      },
+      "actual_type": "refuse",
+      "response": "I can only share factual information from official sources. I don't provide investment advice, recommendations, buy/sell guidance, portfolio allocation help, or return predictions. For investor education, see the SEBI investor portal.\nSource: https://investor.sebi.gov.in/\nLast updated from sources: Not stated on source page"
+    },
+    {
+      "id": 5,
+      "query": "What is the price of gold in India?",
+      "category": "NOT_FOUND",
+      "passed": true,
+      "checks": {
+        "type_match": true,
+        "has_source": true,
+        "keywords_match": true,
+        "sentence_count_ok": true
+      },
+      "actual_type": "not_found",
+      "response": "I couldn't verify this from the official sources I have indexed. Please check the AMC factsheet, AMFI, or SEBI investor portal for the latest details."
+    },
+    {
+      "id": 6,
+      "query": "What about benchmark?",
+      "category": "MEMORY",
+      "passed": true,
+      "checks": {
+        "type_match": true,
+        "has_source": true,
+        "keywords_match": true,
+        "sentence_count_ok": true
+      },
+      "actual_type": "answer",
+      "response": "Answer: Benchmark for HDFC Small Cap Fund - Direct: BSE 250 SmallCap Index (TRI).\nSource: https://www.hdfcfund.com/explore/mutual-funds/hdfc-small-cap-fund/direct\nLast updated from sources: Not stated on source page"
+    },
+    {
+      "id": 7,
+      "query": "What is the riskometer of HDFC Flexi Cap Fund?",
+      "category": "FACT",
+      "passed": true,
+      "checks": {
+        "type_match": true,
+        "has_source": true,
+        "keywords_match": true,
+        "sentence_count_ok": true
+      },
+      "actual_type": "answer",
+      "response": "Answer: Riskometer for HDFC Flexi Cap Fund - Direct: Very High.\nSource: https://www.hdfcfund.com/explore/mutual-funds/hdfc-flexi-cap-fund/direct\nLast updated from sources: Not stated on source page"
+    }
+  ]
+}

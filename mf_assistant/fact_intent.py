@@ -17,7 +17,7 @@ _FIELD_PATTERNS = {
     "minimum_sip":    [r"\bminimum\s+sip\b", r"\bmin\s+sip\b", r"\bsip\s+amount\b",
                        r"\bminimum\s+investment\s+for\s+sip\b"],
     "minimum_lumpsum":[r"\bminimum\s+(lumpsum|lump\s*sum|investment|application|amount)\b"],
-    "expense_ratio":  [r"\bexpense\s*ratio\b", r"\bter\b"],
+    "expense_ratio":  [r"\bexp[a-z]*se\s*ratio\b", r"\bexpsense\b", r"\bratio\b", r"\bter\b"],
     "riskometer":     [r"\briskometer\b", r"\brisk[\s\-]?o[\s\-]?meter\b",
                        r"\brisk\s+(level|rating|category)\b"],
 }

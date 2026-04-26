@@ -47,3 +47,24 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+.venv/
+
+# Project Data
+mf_assistant/data/raw/
+mf_assistant/data/normalized/
+mf_assistant/data/chunks/
+mf_assistant/data/index/
+mf_assistant/data/facts/
+mf_assistant/data/threads.json
+mf_assistant/data/*.log
+
+# Evaluation
+evaluation/results/
+evaluation/__pycache__/

@@ -8,3 +8,14 @@ HDFC_ELSS_KIM,HDFC ELSS Tax Saver - KIM (May 2025),HDFC ELSS Tax Saver - Direct,
 HDFC_MIDCAP_PAGE,HDFC Mid Cap Fund - Scheme Page,HDFC Mid Cap Fund - Direct,html,scheme_page,https://www.hdfcfund.com/explore/mutual-funds/hdfc-mid-cap-fund/direct,
 HDFC_MIDCAP_KIM,HDFC Mid Cap Fund - KIM (Nov 2025),HDFC Mid Cap Fund - Direct,pdf,kim,https://files.hdfcfund.com/s3fs-public/KIM/2025-11/KIM%20-%20HDFC%20Mid%20Cap%20Fund%20dated%20November%2021%2C%202025_1.pdf,2025-11-21
 HDFC_SMALLCAP_PAGE,HDFC Small Cap Fund - Scheme Page,HDFC Small Cap Fund - Direct,html,scheme_page,https://www.hdfcfund.com/explore/mutual-funds/hdfc-small-cap-fund/direct,
+HDFC_SMALLCAP_KIM,HDFC Small Cap Fund - KIM (May 2025),HDFC Small Cap Fund - Direct,pdf,kim,https://files.hdfcfund.com/s3fs-public/KIM/2025-05/KIM%20-%20HDFC%20Small%20Cap%20Fund%20dated%20May%2030%2C%202025.pdf,2025-05-30
+HDFC_TOP100_PAGE,HDFC Top 100 Fund - Scheme Page,HDFC Top 100 Fund - Direct,html,scheme_page,https://www.hdfcfund.com/explore/mutual-funds/hdfc-top-100-fund/direct,
+AMFI_INTRO_MF,Introduction to Mutual Funds,AMFI,html,education,https://www.amfiindia.com/investor/knowledge-center-info?zoneName=IntroductionMutualFunds,
+AMFI_TYPES_MF,Types of Mutual Fund Schemes,AMFI,html,education,https://www.amfiindia.com/investor/knowledge-center-info?zoneName=TypesOfMutualFundSchemes,
+AMFI_CAS_INFO,Consolidated Account Statement (CAS),AMFI,html,education,https://www.amfiindia.com/investor/become-mf-distributor?zoneName=consolidatedAcct,
+AMFI_DOWNLOAD_CAS,Download CAS,AMFI,html,education,https://www.amfiindia.com/online-center/download-cas,
+AMFI_INVESTOR_SERVICE_FAQ,Investor Service FAQs,AMFI,html,education,https://www.amfiindia.com/investor/become-mf-distributor?zoneName=InvestorService,
+SEBI_INVESTOR_HOME,SEBI Investor Home,SEBI,html,education,https://investor.sebi.gov.in/,
+SEBI_UNDERSTANDING_MF,SEBI Understanding Mutual Funds,SEBI,html,education,https://investor.sebi.gov.in/understanding_mf.html,
+SEBI_SECURITIES_INVESTMENT,SEBI Securities Market Investments,SEBI,html,education,https://investor.sebi.gov.in/personalsecurities.html,
+KUVERA_CAPITAL_GAINS,Kuvera Capital Gains,Kuvera,html,guide,https://kuvera.in/reports/capital-gains

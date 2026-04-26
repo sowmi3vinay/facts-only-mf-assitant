@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 # Public decision labels.
-Decision = Literal["ANSWER", "REFUSE", "NOT_FOUND"]
+Decision = Literal["ANSWER", "REFUSE", "NOT_FOUND", "HOW_TO"]
 
 # Internal sub-reason for refusals (helps the responder pick the right canned text).
 RefuseReason = Literal["pii", "advice", "scope", ""]
@@ -39,6 +39,8 @@ class RouteResult:
             return "refuse_pii"
         if self.decision == "REFUSE" and self.refuse_reason == "advice":
             return "refuse_advice"
+        if self.decision == "HOW_TO":
+            return "howto"
         return "refuse_scope"
 
 
@@ -68,6 +70,11 @@ _FACT_KEYWORDS = [
     "isin", "aum", "inception", "plan", "direct", "regular",
 ]
 
+# --- How-To / Process keywords ---
+_HOW_TO_KEYWORDS = [
+    "how to", "download", "statement", "capital gains", "cas", "report", "tax report", "tax statement", "gains report",
+]
+
 
 def contains_pii(text: str) -> bool:
     """Return True if the text appears to contain PII we refuse to handle."""
@@ -93,6 +100,11 @@ def looks_factual(text: str) -> bool:
     return any(k in t for k in _FACT_KEYWORDS)
 
 
+def looks_like_howto(text: str) -> bool:
+    t = (text or "").lower()
+    return any(k in t for k in _HOW_TO_KEYWORDS)
+
+
 def classify(query: str) -> RouteResult:
     """Classify the query into ANSWER / REFUSE / NOT_FOUND.
 
@@ -107,6 +119,9 @@ def classify(query: str) -> RouteResult:
 
     if looks_like_advice(q):
         return RouteResult("REFUSE", "advice", "Query asks for advice or recommendation.")
+
+    if looks_like_howto(q):
+        return RouteResult("HOW_TO", "", "Process/How-to query.")
 
     return RouteResult("ANSWER", "", "Factual query; route to retrieval.")
 

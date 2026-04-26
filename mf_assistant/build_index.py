@@ -104,7 +104,7 @@ def build(verbose: bool = True) -> int:
     )
 
     if verbose:
-        print(f"Built FAISS index with {len(chunks)} vectors → {FAISS_INDEX_PATH}")
+        print(f"Built FAISS index with {len(chunks)} vectors -> {FAISS_INDEX_PATH}")
     return len(chunks)
 
 

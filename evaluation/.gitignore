@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+data/raw/
+data/chunks/
+data/index/
+data/facts/
+*.log

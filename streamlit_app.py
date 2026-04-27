@@ -1,30 +1,27 @@
-"""Root entry point for Streamlit Cloud deployment."""
-from __future__ import annotations
-import sys
+import streamlit as st
 import os
+import sys
 
-# Ensure the logs are flushed immediately
-def log(msg):
-    print(f"DEBUG: {msg}")
-    sys.stdout.flush()
+# DEBUG VERSION - NO HEAVY IMPORTS
+st.set_page_config(page_title="Debug Mode")
 
-log("streamlit_app.py starting...")
-log(f"CWD: {os.getcwd()}")
-log(f"Python Version: {sys.version}")
+st.title("🛠️ Assistant Debug Mode")
+st.success("If you can see this, Streamlit is rendering correctly!")
 
-# Add the current directory to path explicitly
-sys.path.insert(0, os.getcwd())
+st.write("### System Info")
+st.write(f"- **Python**: {sys.version}")
+st.write(f"- **CWD**: {os.getcwd()}")
+st.write(f"- **Cloud**: {os.path.exists('/mount/src')}")
 
+st.write("### Files in Root")
+st.write(os.listdir("."))
+
+st.info("Attempting a safe import of config...")
 try:
-    log("Attempting to import mf_assistant.app...")
-    import mf_assistant.app as app
-    log("Successfully imported mf_assistant.app.")
+    from mf_assistant.config import CLOUD_LIGHT_MODE
+    st.write(f"Cloud Light Mode: {CLOUD_LIGHT_MODE}")
+    st.write("Logic config imported successfully!")
 except Exception as e:
-    log(f"CRITICAL ERROR during import: {e}")
-    import traceback
-    log(traceback.format_exc())
-    sys.exit(1)
+    st.error(f"Error importing config: {e}")
 
-log("Executing app logic...")
-# Since mf_assistant.app is designed to run as a script, 
-# importing it already triggered the Streamlit UI code.
+st.warning("If this page is visible, but the main app wasn't, then the issue is in the pipeline imports.")

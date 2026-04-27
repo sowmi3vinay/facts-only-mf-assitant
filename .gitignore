@@ -44,6 +44,7 @@ streamlit_app.py
 !streamlit_app.py
 app.py
 !app.py
+mf_assistant/data/threads.json
 
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md

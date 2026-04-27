@@ -25,6 +25,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from .build_index import build as build_index
 from .config import (
+    CLOUD_LIGHT_MODE,
     DEFAULT_OVERFETCH,
     DEFAULT_TOP_K,
     EMBED_MODEL_NAME,
@@ -74,13 +75,20 @@ class Retriever:
             build_index(verbose=False)
         self._meta = self._read_meta(META_PATH)
         if self._meta:
-            try:
-                import faiss  # type: ignore
-                print("DEBUG: FAISS imported successfully.")
-                self._index = faiss.read_index(str(FAISS_INDEX_PATH))
-            except Exception as e:
-                print(f"ERROR: Failed to import FAISS or read index: {e}")
-                # Don't crash the whole app, just disable retrieval
+            # Only load vector index if NOT in Light Mode
+            if not CLOUD_LIGHT_MODE:
+                try:
+                    import faiss  # type: ignore
+                    if FAISS_INDEX_PATH.exists():
+                        print("DEBUG: FAISS imported and loading index.")
+                        self._index = faiss.read_index(str(FAISS_INDEX_PATH))
+                    else:
+                        print(f"DEBUG: Vector index not found at {FAISS_INDEX_PATH}")
+                except Exception as e:
+                    print(f"ERROR: Failed to import FAISS or read index: {e}")
+                    self._index = None
+            else:
+                print("DEBUG: CLOUD_LIGHT_MODE active. Skipping FAISS vector index.")
                 self._index = None
             
             # Initialize keyword index
@@ -118,9 +126,12 @@ class Retriever:
         return sorted(seen)
 
     def _ensure_model(self):
+        """Lazy load the sentence-transformer model if not in Light Mode."""
+        if CLOUD_LIGHT_MODE:
+            return None
         if self._model is None:
             from sentence_transformers import SentenceTransformer  # type: ignore
-
+            print(f"DEBUG: Loading embedding model {EMBED_MODEL_NAME}...")
             self._model = SentenceTransformer(EMBED_MODEL_NAME)
         return self._model
 
@@ -139,13 +150,20 @@ class Retriever:
         if not query or not self._index or not self._meta:
             return []
 
-        # 1. Vector search
+        # 1. Vector search - only if NOT in light mode
+        v_scores, v_idx = [], []
         model = self._ensure_model()
-        qv = model.encode([query], convert_to_numpy=True, normalize_embeddings=True).astype("float32")
-        k_fetch = min(max(top_k * 2, DEFAULT_OVERFETCH), len(self._meta))
-        v_scores, v_idx = self._index.search(qv, k_fetch)
-        v_scores = v_scores[0]
-        v_idx = v_idx[0]
+        if model is not None and self._index is not None:
+            qv = model.encode([query], convert_to_numpy=True, normalize_embeddings=True).astype("float32")
+            k_fetch = min(max(top_k * 2, DEFAULT_OVERFETCH), len(self._meta))
+            v_scores, v_idx = self._index.search(qv, k_fetch)
+            v_scores = v_scores[0]
+            v_idx = v_idx[0]
+        else:
+            if CLOUD_LIGHT_MODE:
+                print("DEBUG: Vector search skipped (Cloud Light Mode)")
+            elif not self._index:
+                print("DEBUG: Vector search skipped (Index missing)")
 
         # 2. Keyword search
         q_vec = self._keyword_vectorizer.transform([query])

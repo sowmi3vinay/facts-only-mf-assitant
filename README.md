@@ -20,6 +20,10 @@ The **Facts-Only Mutual Fund FAQ Assistant** is a specialized information retrie
 *   **Official Sources Only:** Data is pulled directly from AMC, AMFI, and SEBI portals.
 *   **No Investment Advice:** The system strictly refuses to provide recommendations, comparisons, or personalized financial guidance.
 
+## Deployment Modes
+- **Local Mode**: Uses the full retrieval stack, including `sentence-transformers` for semantic vector search and `FAISS` for nearest-neighbor retrieval.
+- **Cloud Light Mode**: Automatically activated on Streamlit Community Cloud. It uses a lightweight retrieval engine (TF-IDF keyword search) to ensure fast startup and avoid memory-related crashes on limited cloud resources. All core features (structured facts, memory, refusals) remain fully functional.
+
 ---
 
 ## Scope

@@ -1,7 +1,10 @@
-"""Shared constants and paths for the MF assistant pipeline."""
-from __future__ import annotations
-
+import os
 from pathlib import Path
+
+# --- Cloud Mode Detection ---
+# Streamlit Cloud sets specific environment variables like STREAMLIT_SHARING_CLIENT
+IS_ON_STREAMLIT_CLOUD = os.environ.get("STREAMLIT_SHARING_CLIENT") == "true" or os.environ.get("STREAMLIT_RUNTIME_STATS_GATHER_USAGE_STATS") is not None
+CLOUD_LIGHT_MODE = os.environ.get("CLOUD_LIGHT_MODE", "1" if IS_ON_STREAMLIT_CLOUD else "0") == "1"
 
 ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT / "data"

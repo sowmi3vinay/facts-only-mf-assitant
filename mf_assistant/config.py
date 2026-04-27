@@ -2,8 +2,13 @@ import os
 from pathlib import Path
 
 # --- Cloud Mode Detection ---
-# Streamlit Cloud sets specific environment variables like STREAMLIT_SHARING_CLIENT
-IS_ON_STREAMLIT_CLOUD = os.environ.get("STREAMLIT_SHARING_CLIENT") == "true" or os.environ.get("STREAMLIT_RUNTIME_STATS_GATHER_USAGE_STATS") is not None
+# Streamlit Cloud sets specific environment variables. We also check for common cloud paths.
+IS_ON_STREAMLIT_CLOUD = (
+    os.environ.get("STREAMLIT_SHARING_CLIENT") == "true" or 
+    os.environ.get("STREAMLIT_RUNTIME_STATS_GATHER_USAGE_STATS") is not None or
+    os.path.exists("/mount/src") or  # Standard Streamlit Cloud mount point
+    os.environ.get("HOME") == "/home/adminuser"
+)
 CLOUD_LIGHT_MODE = os.environ.get("CLOUD_LIGHT_MODE", "1" if IS_ON_STREAMLIT_CLOUD else "0") == "1"
 
 ROOT = Path(__file__).resolve().parent
